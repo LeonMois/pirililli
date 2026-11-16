@@ -1,0 +1,21 @@
+services:
+  db:
+    image: postgres:17-alpine
+    container_name: pirililli-db
+    environment:
+      POSTGRES_DB: pirililli
+      POSTGRES_USER: pirililli
+      POSTGRES_PASSWORD: pirililli
+    ports:
+      - "5433:5432"
+    volumes:
+      - pirililli-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U pirililli -d pirililli"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+    restart: unless-stopped
+
+volumes:
+  pirililli-data:

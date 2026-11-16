@@ -1,0 +1,10 @@
+{
+  "name": "Pirililli",
+  "short_name": "Urna",
+  "start_url": "/",
+  "display": "fullscreen",
+  "orientation": "landscape",
+  "background_color": "#1e1e1e",
+  "theme_color": "#1e1e1e",
+  "icons": [{ "src": "icons/icon.png", "sizes": "512x512", "type": "image/png" }]
+}
