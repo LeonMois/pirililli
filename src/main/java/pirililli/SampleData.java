@@ -15,19 +15,19 @@ final class SampleData {
 
     /** Creates each sample file that doesn't exist yet. */
     static void createMissing(Path dir) throws IOException {
-        if (!Files.exists(Catalog.xlsx(dir, "candidates"))) {
+        if (!Files.exists(Catalog.csv(dir, "candidates"))) {
             candidates(dir);
-            System.out.println("Created sample " + Catalog.xlsx(dir, "candidates").toAbsolutePath());
+            System.out.println("Created sample " + Catalog.csv(dir, "candidates").toAbsolutePath());
         }
-        if (!Files.exists(Catalog.xlsx(dir, "questions"))) {
+        if (!Files.exists(Catalog.csv(dir, "questions"))) {
             questions(dir);
-            System.out.println("Created sample " + Catalog.xlsx(dir, "questions").toAbsolutePath());
+            System.out.println("Created sample " + Catalog.csv(dir, "questions").toAbsolutePath());
         }
-        if (!Files.exists(Catalog.xlsx(dir, "translations"))) {
+        if (!Files.exists(Catalog.csv(dir, "translations"))) {
             List<List<String>> rows = new ArrayList<>();
             Translations.DEFAULTS.forEach((k, v) -> rows.add(List.of(k, v[0], v[1])));
-            Spreadsheets.write(Catalog.xlsx(dir, "translations"), "Translations", List.of("key", "pt", "en"), rows);
-            System.out.println("Created " + Catalog.xlsx(dir, "translations").toAbsolutePath());
+            Spreadsheets.write(Catalog.csv(dir, "translations"), List.of("key", "pt", "en"), rows);
+            System.out.println("Created " + Catalog.csv(dir, "translations").toAbsolutePath());
         }
     }
 
@@ -52,11 +52,11 @@ final class SampleData {
             if (!Files.exists(target)) ImageIO.write(avatar(c[1], i++), "png", target.toFile());
             cRows.add(List.of(c[0], c[1], c[2], file));
         }
-        Spreadsheets.write(Catalog.xlsx(dir, "candidates"), "Candidates", Catalog.CANDIDATE_HEADER, cRows);
+        Spreadsheets.write(Catalog.csv(dir, "candidates"), Catalog.CANDIDATE_HEADER, cRows);
     }
 
     private static void questions(Path dir) throws IOException {
-        Spreadsheets.write(Catalog.xlsx(dir, "questions"), "Questions", List.of("pt", "en", "candidates"), List.of(
+        Spreadsheets.write(Catalog.csv(dir, "questions"), List.of("pt", "en", "candidates"), List.of(
                 List.of("Melhor dançarino(a) do ano", "Best dancer of the year", ""),
                 List.of("Mais atrasado(a) do ano", "Most late person of the year", ""),
                 List.of("Melhor churrasqueiro(a)", "Best barbecue master", "13, 33, 42, 77"),

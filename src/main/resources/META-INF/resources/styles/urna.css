@@ -1,13 +1,13 @@
 /* Pirililli – the urna is laid out on a fixed 1600 x 900 grid; 1 grid unit = var(--u). */
 html, body {
-  margin: 0; height: 100%; background: #1e1e1e; overflow: hidden;
+  margin: 0; height: 100%; background: #fff; overflow: hidden;
   -webkit-user-select: none; user-select: none; -webkit-touch-callout: none;
   -webkit-tap-highlight-color: transparent; touch-action: manipulation;
   font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
 }
 .stage {
   position: fixed; inset: 0; display: flex; align-items: center; justify-content: center;
-  background: #1e1e1e;
+  background: #fff;
 }
 .urna {
   position: relative; width: min(100vw, calc(100dvh * 16 / 9)); aspect-ratio: 16 / 9;

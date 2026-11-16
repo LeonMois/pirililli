@@ -86,7 +86,7 @@ public class UrnaView extends Div {
         machine.add(key(UrnaKey.D0, "0", "digit", x0 + dx, y0 + 3 * dy, 112, 78));
         machine.add(key(UrnaKey.BRANCO, tr("key_blank"), "action blank", 1075, 700, 132, 84));
         machine.add(key(UrnaKey.CORRIGE, tr("key_correct"), "action correct", 1222, 700, 132, 84));
-        machine.add(key(UrnaKey.CONFIRMA, tr("key_confirm"), "action confirm", 1369, 680, 132, 104));
+        machine.add(key(UrnaKey.CONFIRMA, tr("key_confirm"), "action confirm", 1369, 700, 132, 84));
 
         registerKeyboard();
         render();

@@ -91,9 +91,9 @@ public class Application implements AppShellConfigurator {
         // "Add to Home Screen" on iPad → opens fullscreen without the Safari UI
         settings.addMetaTag("apple-mobile-web-app-capable", "yes");
         settings.addMetaTag("mobile-web-app-capable", "yes");
-        settings.addMetaTag("apple-mobile-web-app-status-bar-style", "black-translucent");
+        settings.addMetaTag("apple-mobile-web-app-status-bar-style", "default");
         settings.addMetaTag("apple-mobile-web-app-title", "Urna");
-        settings.addMetaTag("theme-color", "#1e1e1e");
+        settings.addMetaTag("theme-color", "#ffffff");
         settings.addLink("apple-touch-icon", "icons/icon.png");
         settings.addLink("manifest", "manifest.webmanifest");
         settings.addLink("stylesheet", "styles/urna.css");

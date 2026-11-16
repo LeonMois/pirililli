@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.security.SecureRandom;
 import java.util.*;
 
@@ -19,7 +20,7 @@ import java.util.*;
  *   <li>translations – key | pt | en | ... (UI texts)</li>
  *   <li>voters       – Voter ID | Gringo (yes/no) | Name / note</li>
  * </ul>
- * Each is an .xlsx file ({@code candidates.xlsx}, ...), plus
+ * Each is a CSV file ({@code candidates.csv}, ...), plus
  * <ul>
  *   <li>sounds/           – pirililli.mp3 and click.mp3 (or .wav/.m4a/.ogg)</li>
  * </ul>
@@ -48,12 +49,13 @@ final class Catalog {
     static Catalog load(Settings settings) throws IOException {
         Path dataDir = settings.dataDir();
         Files.createDirectories(dataDir.resolve("pictures"));
+        convertOldXlsx(dataDir);
         SampleData.createMissing(dataDir);
         installDefaultSounds(dataDir.resolve("sounds"));
         ensureVoters(dataDir, settings.votersCount());
 
         Map<String, Candidate> candidates = new LinkedHashMap<>();
-        for (List<String> row : Spreadsheets.read(xlsx(dataDir, "candidates")).rows()) {
+        for (List<String> row : Spreadsheets.read(csv(dataDir, "candidates")).rows()) {
             String num = normalize(Spreadsheets.cell(row, 0), 2);
             if (num == null) {
                 System.err.println("candidates: skipping row with invalid number: " + row);
@@ -62,7 +64,7 @@ final class Catalog {
             candidates.put(num, new Candidate(num, Spreadsheets.cell(row, 1), Spreadsheets.cell(row, 2), Spreadsheets.cell(row, 3)));
         }
 
-        Spreadsheets.Table qt = Spreadsheets.read(xlsx(dataDir, "questions"));
+        Spreadsheets.Table qt = Spreadsheets.read(csv(dataDir, "questions"));
         int candidatesCol = -1;
         Map<Integer, String> langCols = new LinkedHashMap<>();
         for (int c = 0; c < qt.header().size(); c++) {
@@ -93,7 +95,7 @@ final class Catalog {
         }
 
         Map<String, Voter> voters = new LinkedHashMap<>();
-        for (List<String> row : Spreadsheets.read(xlsx(dataDir, "voters")).rows()) {
+        for (List<String> row : Spreadsheets.read(csv(dataDir, "voters")).rows()) {
             String id = normalize(Spreadsheets.cell(row, 0), 6);
             if (id == null) continue;
             voters.put(id, new Voter(id, truthy(Spreadsheets.cell(row, 1)), Spreadsheets.cell(row, 2)));
@@ -101,7 +103,7 @@ final class Catalog {
         // can be listed in the voters sheet to set its gringo flag; otherwise it uses the default language
         voters.putIfAbsent(ALWAYS_VALID_VOTER, new Voter(ALWAYS_VALID_VOTER, false, "always valid"));
 
-        Spreadsheets.Table tt = addMissingTranslationKeys(dataDir, Spreadsheets.read(xlsx(dataDir, "translations")));
+        Spreadsheets.Table tt = addMissingTranslationKeys(dataDir, Spreadsheets.read(csv(dataDir, "translations")));
         Translations translations = new Translations(tt, settings.defaultLanguage());
 
         System.out.printf("Loaded %d candidates, %d questions, %d voters, languages %s%n",
@@ -127,14 +129,27 @@ final class Catalog {
             added.add(e.getKey());
         }
         if (added.isEmpty() || table.header().isEmpty()) return table;
-        Spreadsheets.write(xlsx(dataDir, "translations"), "Translations", table.header(), rows);
-        System.out.println("Added new keys to " + xlsx(dataDir, "translations") + ": " + added);
+        Spreadsheets.write(csv(dataDir, "translations"), table.header(), rows);
+        System.out.println("Added new keys to " + csv(dataDir, "translations") + ": " + added);
         return new Spreadsheets.Table(table.header(), rows);
     }
 
-    /** data/&lt;base&gt;.xlsx */
-    static Path xlsx(Path dataDir, String base) {
-        return dataDir.resolve(base + ".xlsx");
+    /** data/&lt;base&gt;.csv */
+    static Path csv(Path dataDir, String base) {
+        return dataDir.resolve(base + ".csv");
+    }
+
+    /** Converts the .xlsx files of older versions to .csv once and moves them to data/old-xlsx/. */
+    private static void convertOldXlsx(Path dataDir) throws IOException {
+        for (String base : List.of("candidates", "questions", "translations", "voters")) {
+            Path x = dataDir.resolve(base + ".xlsx");
+            if (!Files.exists(x) || Files.exists(csv(dataDir, base))) continue;
+            Spreadsheets.Table t = Spreadsheets.readXlsx(x);
+            Spreadsheets.write(csv(dataDir, base), t.header(), t.rows());
+            Path old = Files.createDirectories(dataDir.resolve("old-xlsx"));
+            Files.move(x, old.resolve(x.getFileName()), StandardCopyOption.REPLACE_EXISTING);
+            System.out.println("Converted " + x + " to " + csv(dataDir, base) + " (old file moved to " + old + ")");
+        }
     }
 
     /** Copies the bundled sounds unless a file with that name (any supported extension) already exists. */
@@ -160,8 +175,8 @@ final class Catalog {
     private static void ensureVoters(Path dataDir, int count) throws IOException {
         List<List<String>> rows = new ArrayList<>();
         Set<String> ids = new HashSet<>();
-        if (Files.exists(xlsx(dataDir, "voters"))) {
-            for (List<String> row : Spreadsheets.read(xlsx(dataDir, "voters")).rows()) {
+        if (Files.exists(csv(dataDir, "voters"))) {
+            for (List<String> row : Spreadsheets.read(csv(dataDir, "voters")).rows()) {
                 String id = normalize(Spreadsheets.cell(row, 0), 6);
                 if (id != null) ids.add(id);
                 rows.add(new ArrayList<>(List.of(id == null ? Spreadsheets.cell(row, 0) : id,
@@ -178,8 +193,8 @@ final class Catalog {
                 added++;
             }
         }
-        Spreadsheets.write(xlsx(dataDir, "voters"), "Voters", VOTER_HEADER, rows);
-        System.out.println("Generated " + added + " new voter IDs in " + xlsx(dataDir, "voters").toAbsolutePath());
+        Spreadsheets.write(csv(dataDir, "voters"), VOTER_HEADER, rows);
+        System.out.println("Generated " + added + " new voter IDs in " + csv(dataDir, "voters").toAbsolutePath());
     }
 
     /** Digits only, left padded with zeros to {@code len}; null if not a valid number of that length. */

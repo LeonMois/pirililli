@@ -16,7 +16,7 @@ Node.js automatically for the Vaadin frontend build.
 This starts the Postgres container, builds the jar if needed and starts the server. The console prints the
 addresses to open, e.g. `http://192.168.1.20:8080`.
 
-On first run it creates `config.properties` and a `data/` folder with sample spreadsheets, pictures, sounds and voter IDs.
+On first run it creates `config.properties` and a `data/` folder with sample CSV tables, pictures, sounds and voter IDs.
 
 ## Setting up an iPad
 
@@ -35,29 +35,35 @@ If the computer's firewall asks whether Java may accept incoming connections, al
 
 | File | Content |
 |------|---------|
-| `data/candidates.xlsx`   | **Number** (2 digits) · **Name** · **Party** (optional) · **Picture** (file name in `data/pictures/`) |
-| `data/questions.xlsx`    | One column per language, with the **language code as header** (`pt`, `en`, …) · **candidates** (comma separated numbers, empty = all) |
-| `data/translations.xlsx` | All UI texts: **key** · `pt` · `en` · … Edit the texts, or add a column to add a language |
-| `data/voters.xlsx`       | **Voter ID** (6 digits) · **Gringo** (`yes`/`no`) · Name / note (optional) |
+| `data/candidates.csv`   | **Number** (2 digits) · **Name** · **Party** (optional) · **Picture** (file name in `data/pictures/`) |
+| `data/questions.csv`    | One column per language, with the **language code as header** (`pt`, `en`, …) · **candidates** (comma separated numbers, empty = all) |
+| `data/translations.csv` | All UI texts: **key** · `pt` · `en` · … Edit the texts, or add a column to add a language |
+| `data/voters.csv`       | **Voter ID** (6 digits) · **Gringo** (`yes`/`no`) · Name / note (optional) |
 | `data/pictures/`         | Candidate photos (png/jpg), cropped to fit the portrait frame |
 | `data/sounds/`           | `pirililli.mp3` (played on CONFIRMA) and `click.mp3` (every key press) |
 | `config.properties`      | Port, DB connection, `voters-count`, `thanks-seconds`, `default-language`, `gringo-language` |
 
+**Editing the CSV files:** open them with Numbers (right-click → Open With → Numbers), Excel, LibreOffice or any
+text editor. In Numbers, save with **File → Export To → CSV…** (UTF-8) and overwrite the original file. A plain
+⌘S would create a separate `.numbers` file, which the app ignores. Comma- and semicolon-separated files both work.
+Leading zeros that Numbers drops (e.g. `012345` → `12345`) are added back automatically.
+Old `.xlsx` files from earlier versions are converted to `.csv` once and moved to `data/old-xlsx/`.
+
 **Languages:** everyone sees `pirililli.default-language` (default `pt`). Voters marked as gringo see
 `pirililli.gringo-language` (default `en`). Texts missing in a language fall back to the default language.
-The keypad labels and the header plate (`key_*` and `header` in translations.xlsx) always use the default
+The keypad labels and the header plate (`key_*` and `header` in translations.csv) always use the default
 language, because they're "printed" on the machine.
 
 **Sounds:** replace `data/sounds/pirililli.mp3` and `data/sounds/click.mp3` with your own recordings.
 `.mp3`, `.m4a`, `.aac`, `.wav` and `.ogg` work (e.g. `pirililli.wav`; delete the old file so only one has that name).
 Reload the page on the iPads after replacing them. Pictures can also be replaced while it's running.
-Spreadsheet changes need a restart.
+Changes to the CSV files need a restart.
 
-**Voter IDs:** set `pirililli.voters-count`. On startup, if `voters.xlsx` has fewer IDs than that, new random 6-digit
-IDs are generated and appended. Existing IDs are kept. (The file is rewritten when IDs are added, so cell formatting is lost.)
+**Voter IDs:** set `pirililli.voters-count`. On startup, if `voters.csv` has fewer IDs than that, new random 6-digit
+IDs are generated and appended. Existing IDs are kept.
 
-**`000000` is always a valid voter ID**, even if it's not in `voters.xlsx`. Like every ID, it can vote once per
-session. Add it to `voters.xlsx` with `yes` if you want it to be a gringo.
+**`000000` is always a valid voter ID**, even if it's not in `voters.csv`. Like every ID, it can vote once per
+session. Add it to `voters.csv` with `yes` if you want it to be a gringo.
 
 Questions are asked in the order of the rows.
 
